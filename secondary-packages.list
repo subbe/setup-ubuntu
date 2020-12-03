@@ -1,0 +1,7 @@
+php-dev
+make
+autoconf
+pkg-config
+libc-dev
+libmcrypt-dev
+libreadline-dev
