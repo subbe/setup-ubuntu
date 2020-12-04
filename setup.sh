@@ -14,10 +14,24 @@ primary_packages() {
   cat primary-packages.list | xargs sudo apt install -y
 }
 
-php() {
+setup_php() {
   sudo apt-add-repository -y ppa:ondrej/php
   sudo apt update
   cat php-packages.list | xargs sudo apt install -y
+
+  sudo update-alternatives --set php /usr/bin/php7.3
+  sudo update-alternatives --set phar /usr/bin/phar7.3
+  sudo update-alternatives --set phar.phar /usr/bin/phar.phar7.3
+  sudo update-alternatives --set phpize /usr/bin/phpize7.3
+  sudo update-alternatives --set php-config /usr/bin/php-config7.3
+
+  sudo apt purge php7.4-cli \
+    php7.4-common \
+    php7.4-dev \
+    php7.4-json \
+    php7.4-opcache \
+    php7.4-readline
+
 }
 
 mysql() {
@@ -31,11 +45,19 @@ mysql() {
   sudo service mysql restart
 }
 
+oh_my_zsh() {
+  printf "${green}### Installing ZSH\n${nc}"
+  sudo apt install -y zsh
+  sudo chsh -s $(which zsh)
+  sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+}
+
 linuxbrew() {
   printf "${green}### Installing Brew\n${nc}"
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  echo 'eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)' >>/home/subbe/.zshrc
-  source ~/.zshrc
+  echo 'eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)' >>~/.zshrc
+  eval $(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+  exec /bin/zsh
 
   cat brew-packages.list | xargs brew install
 }
@@ -57,13 +79,13 @@ composer_phar() {
 
 linux_valet() {
   printf "${green}### Installing Valet\n${nc}"
+  composer global require cpriego/valet-linux
+  echo "export PATH=${HOME}/.config/composer/vendor/bin:$PATH" >>~/.zshrc
+  test -d ~/.composer && ~/.composer/vendor/bin/valet install || ~/.config/composer/vendor/bin/valet install
   mkdir -p ~/Sites
   cd ~/Sites || return
-  composer global require cpriego/valet-linux
-  echo 'export PATH="${HOME}/.config/composer/vendor/bin:$PATH"' >>~/.zshrc
-  source ~/.zshrc
-  valet install
-  valet park
+  ~/.config/composer/vendor/bin/valet park
+  exec /bin/zsh
 }
 
 snap() {
@@ -98,14 +120,6 @@ dbeaver() {
   sudo apt install -y dbeaver-ce
 }
 
-teams_app() {
-  printf "${green}### Installing Microsoft Teams\n${nc}"
-  curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-  echo "deb [arch=amd64] https://packages.microsoft.com/repos/ms-teams stable main" | sudo tee /etc/apt/sources.list.d/teams.list
-  sudo apt update
-  sudo apt install teams
-}
-
 phpstorm() {
   printf "${green}### Installing Phpstorm Toolbox\n${nc}"
   wget https://download-cf.jetbrains.com/toolbox/jetbrains-toolbox-1.18.7609.tar.gz
@@ -123,17 +137,10 @@ ulauncher() {
   sudo apt install -y ulauncher
 }
 
-zsh() {
-  printf "${green}### Installing ZSH\n${nc}"
-  sudo apt install -y zsh
-  echo $(zsh --version)
-  sudo chsh -s $(which zsh)
-  sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-}
-
 primary_packages
-php
+setup_php
 mysql
+oh_my_zsh
 linuxbrew
 secondary_packages
 composer_phar
@@ -141,8 +148,6 @@ linux_valet
 snap
 docker
 dbeaver
-teams_app
 phpstorm
 ulauncher
-zsh
 upgrade_update
