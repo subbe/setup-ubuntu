@@ -34,7 +34,7 @@ setup_php() {
 
 }
 
-mysql() {
+mysql_server_57() {
   printf "${green}### Installing MySQL\n${nc}"
   sudo debconf-set-selections <<<"mysql-server mysql-server/root_password password root"
   sudo debconf-set-selections <<<"mysql-server mysql-server/root_password_again password root"
@@ -93,7 +93,7 @@ snap() {
   cat snap-packages.list | xargs sudo snap install
 }
 
-docker() {
+docker_ce() {
   printf "${green}### Instaling Docker\n${nc}"
   sudo apt update
   sudo apt-get install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
@@ -102,8 +102,10 @@ docker() {
   sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
   sudo apt update
   sudo apt-cache policy docker-ce
-  sudo apt install -y docker-ce docker-ce-cli
-  sudo usermod -aG docker $(whoami)
+  sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose
+  sudo groupadd docker
+  sudo usermod -aG docker $USER
+  newgrp docker
   sudo service docker stop
   echo "" | sudo tee -a /etc/NetworkManager/NetworkManager.conf
   echo '[keyfile]' | sudo tee -a /etc/NetworkManager/NetworkManager.conf
@@ -113,14 +115,14 @@ docker() {
   sudo service docker start
 }
 
-dbeaver() {
+dbeaver_app() {
   printf "${green}### Installing DBeaver-CE\n${nc}"
   sudo add-apt-repository -y ppa:serge-rider/dbeaver-ce
   sudo apt update
   sudo apt install -y dbeaver-ce
 }
 
-phpstorm() {
+phpstorm_ide() {
   printf "${green}### Installing Phpstorm Toolbox\n${nc}"
   wget https://download-cf.jetbrains.com/toolbox/jetbrains-toolbox-1.18.7609.tar.gz
   tar -xvf jetbrains-toolbox-1.18.7609.tar.gz
@@ -130,7 +132,7 @@ phpstorm() {
   /usr/local/bin/jetbrains-toolbox
 }
 
-ulauncher() {
+ulauncher_app() {
   printf "${green}### Installing ULauncher\n${nc}"
   sudo add-apt-repository -y ppa:agornostal/ulauncher
   sudo apt update
@@ -139,15 +141,15 @@ ulauncher() {
 
 primary_packages
 setup_php
-mysql
+mysql_server_57
 oh_my_zsh
 linuxbrew
 secondary_packages
 composer_phar
 linux_valet
 snap
-docker
-dbeaver
-phpstorm
-ulauncher
+docker_ce
+dbeaver_app
+phpstorm_ide
+ulauncher_app
 upgrade_update
